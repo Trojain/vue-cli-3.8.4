@@ -34,7 +34,6 @@ module.exports = {
     //"error" -> 2 开启错误规则
     // 了解了上面这些，下面这些代码相信也看的明白了
     'rules': {
-
         // 缩进
         "indent": 0,
         // 要求或禁止使用分号而不是 ASI（这个才是控制行尾部分号的，）
@@ -53,6 +52,7 @@ module.exports = {
         // allow async-await
         // 'generator-star-spacing': 0,
         // allow debugger during development
-        'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
+        'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0,
+        "eqeqeq": [0, "allow-null"]
     }
 }

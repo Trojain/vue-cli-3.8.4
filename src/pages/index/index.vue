@@ -1,14 +1,14 @@
 <!--
  * @Description:
  * @Author: xiabing
- * @Date: 2019-06-19 10:31:35
+ * @Date: 2019-06-19 10:48:38
  * @LastEditors: xiabing
- * @LastEditTime: 2019-06-19 10:43:00
+ * @LastEditTime: 2019-06-19 10:55:48
  -->
 
 <template>
-	<div class="">
-		test
+	<div class="Index">
+		index
 	</div>
 </template>
 
