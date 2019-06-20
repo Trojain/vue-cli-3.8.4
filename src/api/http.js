@@ -2,97 +2,43 @@
  * @Description: 封装axios
  * @Author: xiabing
  * @Date: 2018-09-26 10:27:15
- * @LastEditors: jiaxin
- * @LastEditTime: 2019-04-25 14:05:57
+ * @LastEditors: xiabing
+ * @LastEditTime: 2019-06-19 18:41:43
  */
 
 import Vue from 'vue'
 import axios from 'axios'; // 引入axios
 import QS from 'qs'; // 引入qs模块，用来序列化post类型的数据
 import router from '../router'
-import { setStore, getStore, removeStore } from 'js/store'
-import {
-    showLoading,
-    hideLoading
-} from '../assets/js/loading';
+// import { setStore, getStore, removeStore } from 'js/store'
+import { _local } from 'js/store'
+import { showLoading, hideLoading } from '../assets/js/loading';
 
-let [oldServer, newServer] = [null, null];
 // 环境的切换(暂时改用本地代理跨域,以下代码暂时不启用)
 if (process.env.NODE_ENV === 'development') {
     // 开发模式暂时使用代理，以下代码不需要
-    // axios.defaults.baseURL可以设置axios的默认请求地址
-    // axios.defaults.baseURL = 'http://192.168.212.11:8080/';
-    // axios.defaults.baseURL = 'http://192.168.1.183:9090/';
-    oldServer = [
-        "common-service",
-        "file-service",
-        // "customer-service"
-    ];
-    newServer = [
-        "common-service-zjx",
-        "file-service-zjx",
-        // "customer-service-zjx"
-    ];
-    // 设置文件服务器名称，用于拼接图片url
-    setStore({
-        name: "fileIpService",
-        content: {
-            ip: "/api",
-            file: "/file-service-zjx/file/resources/",
-            loginValidator: "/oauth-service/kaptcha/render",
-        }
-    })
+    // axios.defaults.baseURL = 'http://192.168.212.11:8080/'; // 可以设置axios的默认请求地址
 } else if (process.env.NODE_ENV === 'debug') {
     axios.defaults.baseURL = '';
 } else if (process.env.NODE_ENV === 'production') {
-    oldServer = "/api";
-    newServer = "";
-    const url = 'http://192.168.212.11:8080';
-    axios.defaults.baseURL = url;
-    // 设置文件服务器名称，用于拼接图片url
-    setStore({
-        name: "fileIpService",
-        content: {
-            ip: url,
-            file: "/file-service/file/resources/",
-            loginValidator: "/oauth-service/kaptcha/render",
-        }
-    })
+    axios.defaults.baseURL = '';
 }
 
 // 请求超时时间
 // axios.defaults.timeout = 10000;
 
 // post请求头
-// axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+// axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
 
-let windowLoadingcontrol = false;
-let windowAjaxTime = {
-    start: null,
-    end: null
-};
 // 请求拦截器
 axios.interceptors.request.use(config => {
-    if (oldServer !== null && newServer !== null) {
-        if (Array.isArray(oldServer)) {
-            oldServer.forEach((item, index) => {
-                config.url = config.url.replace(item, newServer[index]);
-            })
-        } else {
-            config.url = config.url.replace(oldServer, newServer);
-        }
-    }
-    // end 联调接口时使用如下方式，替换url进入对方服务
-    windowLoadingcontrol = setTimeout(() => {
-        if (windowLoadingcontrol) showLoading();
-    }, 500);
-    windowAjaxTime.start = new Date().getTime();
-    console.log('请求拦截器');
-    // 每次发送请求之前判断是否存在token，如果存在，则统一在http请求的header都加上token，不用每次请求都手动添加了
+    console.log('请求拦截器', config);
+    showLoading();
+    const token = _local.get('access_token');
+    // 每次发送请求之前判断是否存在token
     // 即使本地存在token，也有可能token是过期的，所以在响应拦截器中要对返回状态进行判断
-    const token = getStore({ name: 'access_token', type: "string" });
-    console.log(token);
     if (token) {
+        // 统一在http请求的header都加上token，不用每次请求都手动添加了
         config.headers.Authorization = 'Bearer ' + token;
     }
     return config;
@@ -103,25 +49,19 @@ axios.interceptors.request.use(config => {
 
 // 响应拦截器
 axios.interceptors.response.use(response => {
-    clearTimeout(windowLoadingcontrol);
-    windowLoadingcontrol = false;
-    hideLoading();
-    windowAjaxTime.end = new Date().getTime();
-    response.data.resTime = windowAjaxTime.end - windowAjaxTime.start;
     console.log('响应拦截器', response);
+    hideLoading();
     if (Number(response.status) === 200) {
         // blob不拦截， object 非200的报错提示
-        if (response.data.constructor !== Blob && Number(response.data.statusCode) !== 200) {
-            Vue.prototype.$message.error(response.data.message)
+        if (response.data.constructor !== Blob && Number(response.data.code) !== 200) {
+            Vue.prototype.$message.error(response.data.msg)
         }
         return Promise.resolve(response);
     } else {
-        Vue.prototype.$message.error(response.data.message)
+        Vue.prototype.$message.error(response.data.msg)
         return Promise.reject(response);
     }
 }, (error) => {
-    clearTimeout(windowLoadingcontrol);
-    windowLoadingcontrol = false;
     hideLoading();
     console.log(error.response);
     // 服务器状态码不是200的情况
@@ -130,7 +70,7 @@ axios.interceptors.response.use(response => {
             // 登录过期则跳转登录页面，并携带当前页面的路径
             // 在登录成功后返回当前页面，这一步需要在登录页操作。
         case 401:
-            removeStore({ name: 'access_token' });
+            _local.remove('access_token');
             router.replace({
                 path: '/login',
                 query: {
@@ -143,7 +83,6 @@ axios.interceptors.response.use(response => {
             break;
         }
     }
-
     Vue.prototype.$message.error(error.response.data.message)
     return Promise.reject(error)
 })
@@ -224,10 +163,10 @@ function get(url, params) {
                 params: params
             })
             .then(res => {
-                resolve(res.data);
+                resolve(res);
             })
             .catch(err => {
-                reject(err.data)
+                reject(err)
             })
     });
 }
@@ -323,7 +262,7 @@ function download(url, params, fileType, fileName) {
         params: params,
         headers: {
             'content-disposition': "attachment;filename=total." + fileType,
-            'Content-Type': 'application/x-download;charset=utf-8',
+            'Content-Type': 'application/x-download;charset=utf-8'
         },
         responseType: 'blob'
     };

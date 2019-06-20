@@ -3,7 +3,7 @@
  * @Author: xiabing
  * @Date: 2019-06-19 10:31:35
  * @LastEditors: xiabing
- * @LastEditTime: 2019-06-19 16:25:27
+ * @LastEditTime: 2019-06-19 18:42:02
  -->
 
 <template>
@@ -29,7 +29,19 @@ export default {
 		},
 		get() {
 			alert(_local.get('access_token'));
+		},
+		getList() {
+			let data = {
+				pageNum: 1
+			};
+			this.axios.get("/api/journalismApi", data).then((res) => {
+				console.log(res);
+				this.$message.success("删除成功");
+			});
 		}
+	},
+	activated() {
+		this.getList();
 	}
 }
 </script>

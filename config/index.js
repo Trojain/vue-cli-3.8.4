@@ -12,8 +12,7 @@ module.exports = {
         assetsPublicPath: '/',
         proxyTable: {
             '/api': {
-                target: 'http://192.168.212.11:8080', // 测试服务器端口
-                // target: 'http://192.168.1.183:8080', // 李帅端口
+                target: 'https://www.apiopen.top', // 测试服务器端口
                 changeOrigin: true, // 跨域
                 pathRewrite: {
                     '^/api': '/'
@@ -23,8 +22,8 @@ module.exports = {
 
         // Various Dev Server settings
         host: '0.0.0.0', // can be overwritten by process.env.HOST
-        port: 8080, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
-        autoOpenBrowser: false,
+        port: 8081, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
+        autoOpenBrowser: true,
         errorOverlay: true,
         notifyOnErrors: true,
         poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-

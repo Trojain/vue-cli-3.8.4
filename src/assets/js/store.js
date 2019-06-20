@@ -33,7 +33,7 @@ var _local = {
             item = item;
         }
         // 如果有startTime的值，说明设置了失效时间
-        if (item.startTime) {
+        if (item && item.startTime) {
             let date = new Date().getTime();
             // 如果大于就是过期了，如果小于或等于就还没过期
             if (date - item.startTime > item.expires) {
