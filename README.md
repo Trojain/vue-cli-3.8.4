@@ -1,4 +1,4 @@
-# vue3.8.4
+# vuecli2-demo
 
 > A Vue.js project
 
